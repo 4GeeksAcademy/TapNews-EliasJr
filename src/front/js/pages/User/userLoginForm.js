@@ -2,10 +2,11 @@ import React, { useState, useContext } from "react";
 import { Context } from "../../store/appContext";
 import { Button } from "react-bootstrap";
 import { useNavigate, Link } from "react-router-dom";
+import Swal from "sweetalert2";
 import "../../../styles/index.css";
 
 export const UserLoginForm = ({ onClose }) => {
-    const { store, actions } = useContext(Context);
+    const { actions } = useContext(Context);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -18,7 +19,13 @@ export const UserLoginForm = ({ onClose }) => {
         const response = await actions.login(email, password);
 
         if (response.success) {
-            navigate("/loginOk");
+            Swal.fire({
+                title: '¡Inicio de sesión correcto!',
+                icon: 'success',
+                confirmButtonText: 'Aceptar',
+            }).then(() => {
+                navigate("/loginOk");
+            });
         } else {
             setError(response.message);
         }

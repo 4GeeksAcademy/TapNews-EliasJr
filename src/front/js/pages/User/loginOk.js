@@ -17,7 +17,7 @@ export const LoginOk = () => {
 
     return (
         <>
-            {redirect ? <Navigate to="/user-Categories" /> : null}
+            {redirect ? <Navigate to="/user-private-page" /> : null}
             <div
                 className="d-flex justify-content-center align-items-center vh-50">
                 <div className="container text-center">

@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import { Context } from "../../store/appContext";
-import { Navigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
+import Swal from "sweetalert2";
 
 export const UserSignupForm = () => {
     const [firstName, setFirstName] = useState("");
@@ -17,6 +17,14 @@ export const UserSignupForm = () => {
         const response = await actions.signup(firstName, lastName, email, password);
         if (response.success) {
             setSignupSuccess(true);
+            Swal.fire({
+                title: '¡Registro aceptado!',
+                icon: 'success',
+                confirmButtonText: 'Aceptar',
+            }).then(() => {
+                // Redirigir a la página de inicio de sesión después de la alerta
+                window.location.href = '/user-login';
+            });
         } else {
             setErrorMessage(response.message);
         }

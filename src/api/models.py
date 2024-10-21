@@ -98,16 +98,16 @@ class Newspaper(db.Model):
 
 class Article(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.String(1024))  
     content = db.Column(db.Text)
-    image = db.Column(db.String(255))
-    published_date = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    source = db.Column(db.String(255))
-    link = db.Column(db.String(255))
-
-    author_id = db.Column(db.Integer, db.ForeignKey('author.id'), nullable=False)
-    newspaper_id = db.Column(db.Integer, db.ForeignKey('newspaper.id'), nullable=False)
-    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
+    image = db.Column(db.String(1024)) 
+    published_date = db.Column(db.DateTime)
+    source = db.Column(db.String(1024))  
+    link = db.Column(db.String(1024))
+    
+    author_id = db.Column(db.Integer, db.ForeignKey('author.id'))
+    newspaper_id = db.Column(db.Integer, db.ForeignKey('newspaper.id'))
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
 
     def __repr__(self):
         return f"<Article {self.title}>"

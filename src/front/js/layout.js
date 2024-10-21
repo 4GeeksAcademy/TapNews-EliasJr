@@ -8,7 +8,6 @@ import { Navbar } from "./component/navbar";
 import { UserSignupForm } from "./pages/User/userSignupForm";
 import { UserLoginForm } from "./pages/User/userLoginForm";
 import { UserPrivatePage } from "./pages/User/userPrivatePage";
-import { UserCategories } from "./pages/Category/userCategory";
 import { AdminSignup } from "./pages/Admin/adminSignup";
 import { AdmiLogin } from "./pages/Admin/adminLogin";
 import { AdminPrivatePage } from "./pages/Admin/adminPrivatePage";
@@ -24,7 +23,6 @@ import { AddNewspaper } from "./pages/Newspaper/addNewspaper";
 import { Article } from "./pages/Article/article";
 import { AddArticle } from "./pages/Article/addArticle";
 import { EditArticle } from "./pages/Article/editArticle";
-import { ArticlesView } from "./pages/Article/articlesView";
 
 const Layout = () => {
     const basename = process.env.BASENAME || "";
@@ -51,11 +49,9 @@ const Layout = () => {
                         <Route element={<AddAuthor />} path="/add-author" />
                         <Route element={<Article />} path="/articles" />
                         <Route element={<AddArticle />} path="/add-article" />
-                        <Route element={<ArticlesView />} path="/articles-view" />
                         <Route element={<EditArticle />} path="/edit-article/:id" />
                         <Route element={<Category />} path="/categories" />
                         <Route element={<AddCategory />} path="/add-category" />
-                        <Route element={<UserCategories />} path="/user-categories" />
                         <Route element={<Newspaper />} path="/newspapers" />
                         <Route element={<AddNewspaper />} path="/add-newspaper" />
                         <Route element={<h1>Not found!</h1>} />

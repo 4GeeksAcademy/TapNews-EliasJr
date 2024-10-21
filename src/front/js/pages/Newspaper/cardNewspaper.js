@@ -46,7 +46,7 @@ export const CardNewspaper = (props) => {
   return (
     <div className="card m-2 shadow-sm" style={{ width: "18rem" }}>
       <img
-        src={formData.logo || rigoImage}
+        src={formData.logo}
         className="card-img-top img-fluid"
         alt={formData.name || "Newspaper"}
         style={{ height: "auto", objectFit: "contain" }}

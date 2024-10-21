@@ -1,14 +1,14 @@
 import React, { useEffect, useContext } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button, Row, Col, Container } from "react-bootstrap";
 import { Context } from "../../store/appContext";
 import { CardAuthor } from "./cardAuthor";
 
 export const Author = () => {
     const { store, actions } = useContext(Context);
-    const location = useLocation();
 
     useEffect(() => {
+        // Cargar los autores al montar el componente
         actions.loadAuthors();
     }, []);
 

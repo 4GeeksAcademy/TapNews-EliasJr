@@ -20,8 +20,7 @@ export const AddAuthor = () => {
             setId(store.temp.id);
         }
     }, [store.temp]);
-
-    // Cargar la lista de autores
+    
     useEffect(() => {
         actions.loadAuthors();
     }, []);

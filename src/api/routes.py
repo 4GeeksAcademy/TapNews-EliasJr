@@ -218,7 +218,7 @@ def signup():
     user = User.query.filter_by(email=body["email"]).first()
 
     if user is None:
-        user = User(first_name=["firstName"], last_name=["lastName"], email=body["email"], password=body["password"] )
+        user = User(first_name=body["firstName"], last_name=body["lastName"], email=body["email"], password=body["password"] )
         db.session.add(user)
         db.session.commit()
         response_body = {
@@ -684,18 +684,14 @@ def update_article(article_id):
 def get_favorites_articles():
     favorites = FavoriteArticle.query.all()
     favorite_articles = [favorite.serialize() for favorite in favorites]
-
     return jsonify(favorite_articles), 200
 
 @api.route('/favorites/<int:article_id>', methods=['GET'])
 def get_favorite_article_by_id(article_id):
     favorite = FavoriteArticle.query.filter_by(article_id=article_id).first()
-
     if favorite:
         return jsonify(favorite.serialize()), 200
-
     return jsonify({'message': 'Favorite not found.'}), 404
-
 
 @api.route('/favorites', methods=['POST'])
 def add_favorite():
@@ -705,7 +701,7 @@ def add_favorite():
 
         if not article_id or not user_id:
             return jsonify({'message': 'Article ID and User ID are required.'}), 400
-        
+
         existing_favorite = FavoriteArticle.query.filter_by(user_id=user_id, article_id=article_id).first()
         if existing_favorite:
             return jsonify({'message': 'Article is already in favorites.'}), 409
@@ -715,53 +711,60 @@ def add_favorite():
         db.session.commit()
 
         return jsonify({'message': 'Article added to favorites.'}), 201
-
     except Exception as e:
         db.session.rollback() 
         return jsonify({'message': str(e)}), 500
 
+
 @api.route('/favorites/<int:article_id>', methods=['DELETE'])
 def remove_favorite(article_id):
     favorite = FavoriteArticle.query.filter_by(article_id=article_id).first()
-
     if favorite:
         db.session.delete(favorite)
         db.session.commit()
         return jsonify({'message': 'Article removed from favorites.'}), 200
-
     return jsonify({'message': 'Favorite not found.'}), 404
 
+
+
+@api.route('/api/articles/filter', methods=['GET'])
+def filter_articles():
+    author = request.args.get('author', default="", type=str)
+    newspaper = request.args.get('newspaper', default="", type=str)
+    category = request.args.get('category', default="", type=str)
+    title = request.args.get('title', default="", type=str)
+
+    filtered_articles = Article.query.filter(
+        (Article.author.contains(author)) &
+        (Article.newspaper.contains(newspaper)) &
+        (Article.category.contains(category)) &
+        (Article.title.contains(title))
+    ).all()
+
+    return jsonify([article.serialize() for article in filtered_articles])
+
+
 ######## USER-ADMIN PRIVATE-PAGE########
-
-@api.route("/user-private-page", methods=["GET"])
-@jwt_required()
-def protected():
-    current_user = get_jwt_identity()
-    return jsonify(logged_in_as=current_user), 200
-
-@api.route('/admin-private-page', methods=['GET'])
-@jwt_required()
-def administratorhomepage():
-    return jsonify(message="Bienvenido a la página principal"), 200
-
 @api.route('/load-api-articles', methods=['GET'])
 def load_api_articles():
     try:
-        response = requests.get('https://newsapi.org/v2/top-headlines', params={
+        api_key = os.getenv('NEWS_API_KEY') 
+        response = requests.get('https://newsapi.org/v2/everything?', params={
             'q': 'tesla',
             'sortBy': 'publishedAt',
-            'apiKey': '078875a9809746b1ac17d25705f7991d'
+            'apiKey': api_key  # Usar la API Key aquí
         })
-
-        print("Estado de la respuesta de la API externa:", response.status_code)
-        print("Contenido de la respuesta de la API externa:", response.text)
 
         if response.status_code != 200:
             return jsonify({'error': 'Error al obtener datos de la API externa'}), 500
 
         data = response.json()
-        # import pdb
-        # pdb.set_trace()
+        default_category = Category.query.filter_by(id=1).first()
+        if not default_category:
+            default_category = Category(name='General', description='Categoría general')
+            db.session.add(default_category)
+            db.session.flush()
+
         for article in data.get('articles', []):
             title = article.get('title')
             description = article.get('description')
@@ -773,7 +776,6 @@ def load_api_articles():
             source_name = article.get('source', {}).get('name')
 
             if not all([title, description, url_to_image, url, author_name, source_name, published_at]):
-                print(f"Artículo ignorado por falta de datos: {article}")
                 continue
 
             title = title[:255]
@@ -798,7 +800,7 @@ def load_api_articles():
             if not newspaper:
                 newspaper = Newspaper(name=source_name)
                 db.session.add(newspaper)
-                db.session.flush() 
+                db.session.flush()
 
             new_article = Article(
                 title=title,
@@ -809,7 +811,7 @@ def load_api_articles():
                 link=url,
                 author_id=author.id,
                 newspaper_id=newspaper.id,
-                category_id=1
+                category_id=default_category.id 
             )
 
             db.session.add(new_article)
@@ -821,6 +823,7 @@ def load_api_articles():
         db.session.rollback() 
         print(f"Error al procesar la solicitud: {str(e)}")
         return jsonify({'error': 'Error al procesar la solicitud: ' + str(e)}), 500
+
 
 
 if __name__ == "__main__":

@@ -1,17 +1,16 @@
 import React, { useEffect, useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { Context } from "../store/appContext";
-import { ArticleCard } from "./Article/articleCard";
+import { CardArticle } from "./Article/cardArticle";
 import Swal from "sweetalert2";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Article } from "./Article/article";
 
 export const Home = () => {
   const { store, actions } = useContext(Context);
   const [visibleArticles, setVisibleArticles] = useState(3);
 
   useEffect(() => {
-    actions.getArticleApiData();
+    actions.getArticles();
   }, []);
 
   const loadMoreArticles = () => {
@@ -27,7 +26,7 @@ export const Home = () => {
         cancelButtonText: 'Cancelar',
       }).then((result) => {
         if (result.isConfirmed) {
-          window.location.href = '/signup';
+          window.location.href = '/user-signup';
         }
       });
     } else {
@@ -50,7 +49,18 @@ export const Home = () => {
           {store.articles && store.articles.length > 0 ? (
             store.articles.slice(0, visibleArticles).map((article) => (
               <div className="col-12 col-md-6 col-lg-4 mb-4" key={article.id}>
-                <ArticleCard article={article} />
+                <CardArticle
+                  id={article.id}
+                  title={article.title}
+                  content={article.content}
+                  image={article.image}
+                  published_date={article.published_date}
+                  source={article.source}
+                  link={article.link}
+                  author={article.author}
+                  newspaper={article.newspaper}
+                  category={article.category}
+                />
               </div>
             ))
           ) : (
