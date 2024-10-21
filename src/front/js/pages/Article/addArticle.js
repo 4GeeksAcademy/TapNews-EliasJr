@@ -1,9 +1,9 @@
 import React, { useState, useContext } from "react";
 import { Form, Button } from "react-bootstrap";
-import { Context } from "../store/appContext";
+import { Context } from "../../store/appContext";
 import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
-import "../../styles/addArticle.css";
+import "../../../styles/addArticle.css";
 
 export const AddArticle = () => {
     const { actions } = useContext(Context);
@@ -50,9 +50,8 @@ export const AddArticle = () => {
     return (
         <div className="container mt-4 text-dark">
             <h1 className="display-4 text-center mb-4">Add New Article</h1>
-            <div className="shadow p-4 mb-5 bg-light rounded"> {/* Fondo claro y sombra */}
+            <div className="shadow p-4 mb-5 bg-light rounded">
                 <Form onSubmit={handleSubmit}>
-                    {/* Mapeo de campos */}
                     {[
                         { label: "Title", name: "title", type: "text", placeholder: "Enter article title", required: true },
                         { label: "Content", name: "content", type: "textarea", placeholder: "Enter article content", required: true },

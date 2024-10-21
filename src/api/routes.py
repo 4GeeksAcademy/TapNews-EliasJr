@@ -2,7 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User, Category, UserCategory, Author, Newspaper, Article, FavoriteArticle
+from api.models import db, User, Category, UserCategory, Author, Newspaper, Article, FavoriteArticle, Administrator
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
 
@@ -12,10 +12,12 @@ from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager
+import requests
 
 api = Blueprint('api', __name__)
 
 CORS(api)
+
 
 ############# C.R.U.D USER ##############
 
@@ -111,6 +113,192 @@ def delete_user(user_id):
     db.session.commit()
 
     return jsonify({'message': f'Usuario con id {user_id} ha sido borrado'}), 200
+
+############# C.R.U.D ADMIN ##############
+
+@api.route('/administrator', methods=['GET'])
+def get_administrator():
+    administrators = Administrator.query.all()
+    resultados = list(map(lambda item: item.serialize(), administrators))
+
+    if not administrators:
+        return jsonify(message="No se han encontrado usuarios"), 404
+
+    return jsonify(resultados), 200
+
+@api.route('/administrator/<int:administrator_id>', methods=['GET'])
+def get_administrator2(administrator_id):
+    administrator = Administrator.query.get(administrator_id)
+
+    if administrator is None:
+        return jsonify(message="Usuario no encontrado"), 404
+
+    return jsonify(administrator.serialize()), 200
+
+@api.route('/administrator', methods=['POST'])
+def add_new_administrator():
+    request_body_administrator = request.get_json()
+
+    if (
+        "first_name" not in request_body_administrator
+        or "last_name" not in request_body_administrator
+        or "email" not in request_body_administrator
+        or "password" not in request_body_administrator
+    ):
+        return jsonify({"error": "Datos incompletos"}), 400
+
+    existing_administrator = Administrator.query.filter_by(email=request_body_administrator["email"]).first()
+    if existing_administrator:
+        return jsonify({"error": "El correo ya está registrado"}), 400
+
+    hashed_password = bcrypt.generate_password_hash(request_body_administrator["password"]).decode('utf-8')
+
+    new_administrator = Administrator(
+        first_name=request_body_administrator["first_name"],
+        last_name=request_body_administrator["last_name"],
+        email=request_body_administrator["email"],
+        password=hashed_password,
+    )
+
+    try:
+        db.session.add(new_administrator)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+    response_body = {
+        "msg": "Nuevo usuario añadido correctamente"
+    }
+
+    return jsonify(response_body), 201
+
+@api.route('/administrator/<int:administrator_id>', methods=['PUT'])
+def update_administrator(administrator_id):
+    request_body_administrator = request.get_json()
+
+    administrator = Administrator.query.get(administrator_id)
+    
+    if not administrator:
+        return jsonify({'message': "Usuario no encontrado"}), 404
+
+    if "first_name" in request_body_administrator:
+        administrator.first_name = request_body_administrator["first_name"]
+    if "last_name" in request_body_administrator:
+        administrator.last_name = request_body_administrator["last_name"]
+    if "email" in request_body_administrator:
+        existing_administrator = Administrator.query.filter_by(email=request_body_administrator["email"]).first()
+        if existing_administrator and existing_administrator.id != administrator_id:
+            return jsonify({"error": "El correo ya está en uso por otro usuario"}), 400
+        administrator.email = request_body_administrator["email"]
+    if "password" in request_body_administrator:
+        administrator.password = bcrypt.generate_password_hash(request_body_administrator["password"]).decode('utf-8')
+
+    db.session.commit()
+
+    return jsonify({'message': f'Usuario con id {administrator_id} ha sido actualizado correctamente'}), 200
+
+@api.route('/administrator/<int:administrator_id>', methods=['DELETE'])
+def delete_administrator(administrator_id):
+    administrator = Administrator.query.get(administrator_id)
+
+    if not administrator:
+        return jsonify({'message': "Usuario no encontrado"}), 404
+
+    db.session.delete(administrator)
+    db.session.commit()
+
+    return jsonify({'message': f'Usuario con id {administrator_id} ha sido borrado'}), 200
+
+######## USER LOGIN-SIGNUP ########
+
+@api.route('/user-signup', methods=['POST'])
+def signup():
+    body = request.get_json()
+    user = User.query.filter_by(email=body["email"]).first()
+
+    if user is None:
+        user = User(first_name=["firstName"], last_name=["lastName"], email=body["email"], password=body["password"] )
+        db.session.add(user)
+        db.session.commit()
+        response_body = {
+            "msg": "Usuario creado correctamente"
+        }
+        return jsonify(response_body), 200
+    else:
+        return jsonify({"msg": "El correo electrónico ya está registrado"}), 400
+    
+@api.route("/user-login", methods=["POST"])
+def login():
+    email = request.json.get("email", None)
+    password = request.json.get("password", None)
+
+    user = User.query.filter_by(email=email).first()
+
+    if user == None:
+        return jsonify({"msg" : "Incorrect email or password"}), 401
+    if user.password != password:
+        return jsonify({"msg": "Incorrect email or password"}), 401
+
+    access_token = create_access_token(identity=email)
+    return jsonify(access_token=access_token)
+
+############# ADMIN LOGIN-SIGNUP ##############
+
+@api.route('/admin-Signup', methods=['POST'])
+def administratorSignup():
+    request_body_administrator = request.get_json()
+
+    if (
+        "first_name" not in request_body_administrator
+        or "last_name" not in request_body_administrator
+        or "email" not in request_body_administrator
+        or "password" not in request_body_administrator
+    ):
+        return jsonify({"error": "Datos incompletos"}), 400
+
+    existing_administrator = Administrator.query.filter_by(email=request_body_administrator["email"]).first()
+    if existing_administrator:
+        return jsonify({"error": "El correo ya está registrado"}), 400
+
+    hashed_password = bcrypt.generate_password_hash(request_body_administrator["password"]).decode('utf-8')
+
+    new_administrator = Administrator(
+        first_name=request_body_administrator["first_name"],
+        last_name=request_body_administrator["last_name"],
+        email=request_body_administrator["email"],
+        password=hashed_password,
+    )
+
+    try:
+        db.session.add(new_administrator)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+    response_body = {
+        "msg": "Nuevo usuario añadido correctamente"
+    }
+
+    return jsonify(response_body), 201
+
+@api.route('/admin-Login', methods=['POST'])
+def administratorLogin():
+    request_body_administrator = request.get_json()
+
+    if "email" not in request_body_administrator or "password" not in request_body_administrator:
+        return jsonify({"error": "Correo y contraseña son requeridos"}), 400
+
+    administrator = Administrator.query.filter_by(email=request_body_administrator["email"]).first()
+
+    if not administrator or not bcrypt.check_password_hash(administrator.password, request_body_administrator["password"]):
+        return jsonify({"error": "Correo o contraseña incorrectos"}), 401
+
+    access_token = create_access_token(identity=administrator.id)
+
+    return jsonify(access_token=access_token), 200
+
 
 ############# C.R.U.D CATEGORY ##############
 
@@ -452,6 +640,7 @@ def delete_article_by_id(article_id):
 
     db.session.delete(article)
     db.session.commit()
+    db.session.close()
 
     return jsonify(article.serialize()), 200
 
@@ -531,7 +720,6 @@ def add_favorite():
         db.session.rollback() 
         return jsonify({'message': str(e)}), 500
 
-
 @api.route('/favorites/<int:article_id>', methods=['DELETE'])
 def remove_favorite(article_id):
     favorite = FavoriteArticle.query.filter_by(article_id=article_id).first()
@@ -543,48 +731,97 @@ def remove_favorite(article_id):
 
     return jsonify({'message': 'Favorite not found.'}), 404
 
+######## USER-ADMIN PRIVATE-PAGE########
 
-######## LOGIN ########
-
-@api.route("/login", methods=["POST"])
-def login():
-    email = request.json.get("email", None)
-    password = request.json.get("password", None)
-
-    user = User.query.filter_by(email=email).first()
-
-    if user == None:
-        return jsonify({"msg" : "Incorrect email or password"}), 401
-    if user.password != password:
-        return jsonify({"msg": "Incorrect email or password"}), 401
-
-    access_token = create_access_token(identity=email)
-    return jsonify(access_token=access_token)
-
-######## SIGNUP ########
-@api.route('/signup', methods=['POST'])
-def signup():
-    body = request.get_json()
-    user = User.query.filter_by(email=body["email"]).first()
-
-    if user is None:
-        user = User(first_name=["firstName"], last_name=["lastName"], email=body["email"], password=body["password"] )
-        db.session.add(user)
-        db.session.commit()
-        response_body = {
-            "msg": "Usuario creado correctamente"
-        }
-        return jsonify(response_body), 200
-    else:
-        return jsonify({"msg": "El correo electrónico ya está registrado"}), 400
-
-######## PRIVATE PAGE########
-
-@api.route("/paginaprivada", methods=["GET"])
+@api.route("/user-private-page", methods=["GET"])
 @jwt_required()
 def protected():
     current_user = get_jwt_identity()
     return jsonify(logged_in_as=current_user), 200
+
+@api.route('/admin-private-page', methods=['GET'])
+@jwt_required()
+def administratorhomepage():
+    return jsonify(message="Bienvenido a la página principal"), 200
+
+@api.route('/load-api-articles', methods=['GET'])
+def load_api_articles():
+    try:
+        response = requests.get('https://newsapi.org/v2/top-headlines', params={
+            'q': 'tesla',
+            'sortBy': 'publishedAt',
+            'apiKey': '078875a9809746b1ac17d25705f7991d'
+        })
+
+        print("Estado de la respuesta de la API externa:", response.status_code)
+        print("Contenido de la respuesta de la API externa:", response.text)
+
+        if response.status_code != 200:
+            return jsonify({'error': 'Error al obtener datos de la API externa'}), 500
+
+        data = response.json()
+        # import pdb
+        # pdb.set_trace()
+        for article in data.get('articles', []):
+            title = article.get('title')
+            description = article.get('description')
+            url_to_image = article.get('urlToImage')
+            published_at = article.get('publishedAt')
+            url = article.get('url')
+
+            author_name = article.get('author')
+            source_name = article.get('source', {}).get('name')
+
+            if not all([title, description, url_to_image, url, author_name, source_name, published_at]):
+                print(f"Artículo ignorado por falta de datos: {article}")
+                continue
+
+            title = title[:255]
+            description = description[:65535]
+            url_to_image = url_to_image[:255]
+            url = url[:255]
+            author_name = author_name[:100]
+            source_name = source_name[:255]
+
+            existing_article = Article.query.filter_by(title=title, source=url).first()
+            if existing_article:
+                print(f"Artículo ya existe en la base de datos: {title}")
+                continue
+
+            author = Author.query.filter_by(name=author_name).first()
+            if not author:
+                author = Author(name=author_name, description=None, photo=None)
+                db.session.add(author)
+                db.session.flush() 
+
+            newspaper = Newspaper.query.filter_by(name=source_name).first()
+            if not newspaper:
+                newspaper = Newspaper(name=source_name)
+                db.session.add(newspaper)
+                db.session.flush() 
+
+            new_article = Article(
+                title=title,
+                content=description,
+                image=url_to_image,
+                published_date=published_at,
+                source=url,
+                link=url,
+                author_id=author.id,
+                newspaper_id=newspaper.id,
+                category_id=1
+            )
+
+            db.session.add(new_article)
+
+        db.session.commit()
+        return jsonify(message="Artículos creados exitosamente"), 201
+
+    except Exception as e:
+        db.session.rollback() 
+        print(f"Error al procesar la solicitud: {str(e)}")
+        return jsonify({'error': 'Error al procesar la solicitud: ' + str(e)}), 500
+
 
 if __name__ == "__main__":
     api.run()

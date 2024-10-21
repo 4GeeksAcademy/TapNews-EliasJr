@@ -1,7 +1,7 @@
 import React, { useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
-import { Context } from "../store/appContext";
-import { CardArticle } from "../component/cardArticle";
+import { Context } from "../../store/appContext";
+import { CardArticle } from "./cardArticle";
 import { Button, Container, Row, Col } from "react-bootstrap";
 
 export const Article = () => {
@@ -24,7 +24,7 @@ export const Article = () => {
                         <Button variant="primary" className="shadow">Add Article</Button>
                     </Link>
 
-                    <Link to="/" className="me-2"> 
+                    <Link to="/" className="me-2">
                         <Button variant="secondary" className="shadow">Back to home</Button>
                     </Link>
                 </div>
@@ -32,7 +32,7 @@ export const Article = () => {
 
             <hr className="my-4" />
 
-            {store.articles.length === 0 ? (
+            {store.articles.length === 3 ? (
                 <h3 className="text-center">No articles found. Please add one.</h3>
             ) : (
                 <Row>

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Context } from "../store/appContext";
+import { Context } from "../../store/appContext";
 import { Navigate } from "react-router-dom";
-import "../../styles/index.css";
+import "../../../styles/index.css";
 
 export const LoginOk = () => {
     const { store } = useContext(Context);

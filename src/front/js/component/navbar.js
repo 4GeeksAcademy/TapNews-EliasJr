@@ -14,7 +14,7 @@ export const Navbar = () => {
         actions.logout();
         setOpen(false);
         navigate("/logoutOk");
-    };
+    };    
 
     const toggleMenu = () => {
         setOpen(prevState => !prevState);
@@ -28,8 +28,8 @@ export const Navbar = () => {
                         <h1 className="text-light">App News</h1>
                     </Link>
                     {store.auth === false && location.pathname === "/" && (
-                        <button 
-                            onClick={() => navigate("/login")} 
+                        <button
+                            onClick={() => navigate("/user-login")}
                             className="btn btn-light"
                         >
                             Iniciar Sesión
@@ -57,9 +57,6 @@ export const Navbar = () => {
                             &times;
                         </button>
                         <div className="menu-container">
-                            <Link to="/" className="menu-item">Home</Link>
-                            <Link to="/contact" className="menu-item">About us</Link>
-                            <Link to="/services" className="menu-item">Services</Link>
                             <button onClick={handleLogout} className="menu-item btn btn-danger">Logout</button>
                         </div>
                     </>

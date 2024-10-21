@@ -1,11 +1,11 @@
 import React, { useState, useContext } from "react";
-import { Context } from "../store/appContext";
+import { Context } from "../../store/appContext";
 import Swal from "sweetalert2";
-import "../../styles/index.css";
+import "../../../styles/index.css";
 
 export const CardNewspaper = (props) => {
   const { actions } = useContext(Context);
-  const [isEditing, setIsEditing] = useState(false); 
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: props.name,
     description: props.description,
@@ -49,7 +49,7 @@ export const CardNewspaper = (props) => {
         src={formData.logo || rigoImage}
         className="card-img-top img-fluid"
         alt={formData.name || "Newspaper"}
-        style={{ height: "auto", objectFit: "contain" }} 
+        style={{ height: "auto", objectFit: "contain" }}
       />
       <div className="card-body">
         {isEditing ? (

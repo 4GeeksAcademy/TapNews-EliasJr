@@ -11,9 +11,26 @@ const getState = ({ getStore, getActions, setStore }) => {
 			newspapers: [],
 			articles: [],
 			article: null,
-			favoriteArticles: []
+			fav: [],
 		},
 		actions: {
+			favorito: (nombreFav) => {
+
+				const store = getStore();
+
+				if (store.fav.includes(nombreFav)) {
+					setStore({ fav: store.fav.filter((repetido) => repetido != nombreFav) });
+				}
+				else {
+					setStore({ fav: [...store.fav, nombreFav] });
+				}
+			},
+			
+			corazonColor: name => {
+				const store = getStore();
+				return store.fav.includes(name);
+			},
+
 			login: async (email, password) => {
 				const requestOptions = {
 					method: "POST",
@@ -23,13 +40,13 @@ const getState = ({ getStore, getActions, setStore }) => {
 						password: password,
 					}),
 				};
-
+			
 				try {
 					const response = await fetch(
-						process.env.BACKEND_URL + "/api/login",
+						process.env.BACKEND_URL + "/api/user-login",
 						requestOptions
 					);
-
+			
 					if (response.status !== 200) {
 						const errorData = await response.json();
 						return {
@@ -40,17 +57,17 @@ const getState = ({ getStore, getActions, setStore }) => {
 					const data = await response.json();
 					localStorage.setItem("token", data.access_token);
 					setStore({ auth: true });
-
+			
 					return { success: true };
 				} catch (error) {
 					console.error("Error during login:", error);
 					return { success: false, message: "Error de conexión al servidor" };
 				}
 			},
-
+			
 			logout: () => {
-				setStore({ auth: false });
 				localStorage.removeItem("token");
+				setStore({ auth: false });
 			},
 
 			signup: async (firstName, lastName, email, password) => {
@@ -61,7 +78,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 				};
 
 				try {
-					const response = await fetch(process.env.BACKEND_URL + "/api/signup", requestOptions);
+					const response = await fetch(process.env.BACKEND_URL + "/api/user-signup", requestOptions);
 
 					if (response.status !== 200) {
 						const errorData = await response.json();
@@ -78,14 +95,47 @@ const getState = ({ getStore, getActions, setStore }) => {
 				}
 			},
 
+			loginadmin: (email, password) => {
+
+				const requestOptions = {
+				  method: 'POST',
+				  headers: { "Content-Type": "application/json" },
+				  body: JSON.stringify({
+					"email": email,
+					"password": password
+				  })
+				};
+		
+				fetch(process.env.BACKEND_URL + "/api/loginadministrador", requestOptions)
+				  .then(response => {
+		
+					if (response.status == 200) {
+					  setStore({ auth: true });
+					}
+					return response.json()
+				  })
+		
+				  .then(data => {
+					localStorage.setItem("token", data.access_token);
+					console.log(data);
+				  })
+				  .catch(error => console.log('error', error));
+			},
+		
+			logoutadmin: () => {
+				setStore({ auth: false });
+				localStorage.removeItem("token");
+			},
+
 			verifyToken: async () => {
 				const token = localStorage.getItem("token");
-
+			
 				if (!token) {
 					setStore({ auth: false });
+					console.log("No token found, setting auth to false.");
 					return false;
 				}
-
+			
 				const requestOptions = {
 					method: "GET",
 					headers: {
@@ -93,17 +143,21 @@ const getState = ({ getStore, getActions, setStore }) => {
 						Authorization: `Bearer ${token}`,
 					},
 				};
-
+			
 				try {
 					const response = await fetch(
-						process.env.BACKEND_URL + "/api/paginaprivada",
+						`${process.env.BACKEND_URL}/api/user-private-page`,
 						requestOptions
 					);
-
+			
+					console.log("Response status:", response.status);
+			
 					if (response.status === 200) {
 						setStore({ auth: true });
+						console.log("Token is valid, setting auth to true.");
 						return true;
 					} else {
+						console.log("Token is invalid or expired, removing token and setting auth to false.");
 						localStorage.removeItem("token");
 						setStore({ auth: false });
 						return false;
@@ -114,7 +168,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 					return false;
 				}
 			},
-
+			
 			loadCategories: async () => {
 				try {
 					const response = await fetch(`${process.env.BACKEND_URL}/api/category`);
@@ -320,15 +374,27 @@ const getState = ({ getStore, getActions, setStore }) => {
 
 			getArticles: async () => {
 				try {
-					const response = await fetch(`${process.env.BACKEND_URL}/api/article`);
-					const data = await response.json();
-					if (response.ok) {
-						setStore({ articles: data });
-					} else {
-						console.error('Error al obtener los artículos:', data);
-					}
+				  const response = await fetch(`${process.env.BACKEND_URL}/api/article`);
+				  const data = await response.json();
+				  if (response.ok) {
+					setStore({ articles: data });
+				  } else {
+					console.error('Error al obtener los artículos:', data.message || data);
+				  }
 				} catch (error) {
-					console.error('Error en la solicitud de obtener artículos:', error);
+				  console.error('Error en la solicitud de obtener artículos:', error);
+				}
+			},  
+
+			getArticleApiData: async () => {
+				try {
+					const response = await fetch(`${process.env.BACKEND_URL}api/getApiArticle`);
+					if (!response.ok) {
+						throw new Error("Error en la solicitud: " + response.statusText);
+					}
+					getActions().getDataArticle();
+				} catch (error) {
+					console.error("Error al obtener artículos de la API:", error);
 				}
 			},
 
@@ -481,9 +547,9 @@ const getState = ({ getStore, getActions, setStore }) => {
 				  console.error("Error en la solicitud:", error);
 				  return false;
 				}
-			  },
+			},
 			  
-			  removeFavoriteArticle: async (articleId) => {
+			removeFavoriteArticle: async (articleId) => {
 				if (!articleId) {
 				  console.error('Article ID is required.');
 				  return false;
