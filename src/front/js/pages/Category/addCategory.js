@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { Form, Button } from "react-bootstrap";
-import { Context } from "../store/appContext";
+import { Context } from "../../store/appContext";
 import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 

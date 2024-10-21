@@ -164,3 +164,18 @@ class FavoriteArticle(db.Model):
             'article_id': self.article_id,
             'article': self.article.serialize() if self.article else None,
         }
+
+class Administrator(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(80), unique=False, nullable=False)
+    is_active = db.Column(db.Boolean(), unique=False, nullable=False)
+
+    def __repr__(self):
+        return f'<Administrator {self.email}>'
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "email": self.email,
+        }

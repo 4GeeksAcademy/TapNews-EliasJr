@@ -1,17 +1,18 @@
 import React, { useEffect, useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { Context } from "../store/appContext";
-import { CardArticle } from "../component/cardArticle";
-import Swal from "sweetalert2"; 
+import { ArticleCard } from "./Article/articleCard";
+import Swal from "sweetalert2";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { Article } from "./Article/article";
 
 export const Home = () => {
   const { store, actions } = useContext(Context);
-  const [visibleArticles, setVisibleArticles] = useState(1);
+  const [visibleArticles, setVisibleArticles] = useState(3);
 
   useEffect(() => {
-    actions.getArticles();
-  }, [actions]);
+    actions.getArticleApiData();
+  }, []);
 
   const loadMoreArticles = () => {
     if (!store.isAuthenticated) {
@@ -30,7 +31,7 @@ export const Home = () => {
         }
       });
     } else {
-      setVisibleArticles((prevVisible) => prevVisible + 3);
+      setVisibleArticles((prevVisible) => prevVisible + 10);
     }
   };
 
@@ -40,7 +41,7 @@ export const Home = () => {
         <h1 className="text-center mb-4 text-dark display-4 mt-5">¡HELLO!</h1>
         <p className="text-center mt-4">
           ¿No tienes cuenta?{" "}
-          <Link to="/signup" className="text-primary">
+          <Link to="/user-signup" className="text-primary">
             Regístrate aquí
           </Link>
         </p>
@@ -49,18 +50,7 @@ export const Home = () => {
           {store.articles && store.articles.length > 0 ? (
             store.articles.slice(0, visibleArticles).map((article) => (
               <div className="col-12 col-md-6 col-lg-4 mb-4" key={article.id}>
-                <CardArticle
-                  id={article.id}
-                  title={article.title}
-                  content={article.content}
-                  image={article.image}
-                  published_date={article.published_date}
-                  source={article.source}
-                  link={article.link}
-                  author={article.author}
-                  newspaper={article.newspaper}
-                  category={article.category}
-                />
+                <ArticleCard article={article} />
               </div>
             ))
           ) : (

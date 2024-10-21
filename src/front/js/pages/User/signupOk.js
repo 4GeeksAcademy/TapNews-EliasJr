@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Context } from "../store/appContext";
+import { Context } from "../../store/appContext";
 import { Navigate } from "react-router-dom";
-import "../../styles/index.css";
+import "../../../styles/index.css";
 
 export const SignupOk = () => {
     const { store } = useContext(Context);
@@ -17,7 +17,7 @@ export const SignupOk = () => {
 
     return (
         <>
-            {redirect ? <Navigate to="/login" /> : null}
+            {redirect ? <Navigate to="/user-login" /> : null}
             <div
                 className="d-flex justify-content-center align-items-center vh-50"
             >

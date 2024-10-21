@@ -1,21 +1,21 @@
 import React, { useEffect, useContext, useState } from "react";
 import { Button, Modal } from "react-bootstrap";
-import { Context } from "../store/appContext";
-import { useNavigate } from "react-router-dom"; 
+import { Context } from "../../store/appContext";
+import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
 export const UserCategories = () => {
     const { store, actions } = useContext(Context);
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [showModal, setShowModal] = useState(false);
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
 
     useEffect(() => {
 
         if (!store.auth) {
             navigate("/");
         } else {
-            actions.loadCategories(); 
+            actions.loadCategories();
         }
     }, [store.auth]);
 
@@ -31,7 +31,7 @@ export const UserCategories = () => {
     const handleCloseModal = () => setShowModal(false);
 
     const handleContinue = () => {
-        navigate("/paginaprivada"); 
+        navigate("/user-private-page");
     };
 
     return (
@@ -76,7 +76,7 @@ export const UserCategories = () => {
                 </Modal.Footer>
             </Modal>
             {selectedCategories.length > 0 && (
-                <Link to="/paginaprivada">
+                <Link to="/user-private-page">
                     <Button variant="success" onClick={handleContinue}>
                         Continue
                     </Button>

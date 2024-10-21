@@ -1,9 +1,9 @@
 import React, { useState, useContext } from "react";
-import { Context } from "../store/appContext";
+import { Context } from "../../store/appContext";
 import { Navigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
-export const SignupForm = () => {
+export const UserSignupForm = () => {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
@@ -31,7 +31,7 @@ export const SignupForm = () => {
             <h1>Registro</h1>
             <br />
             {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
-            <form onSubmit={handleSignup}> 
+            <form onSubmit={handleSignup}>
                 <div className="mb-3">
                     <label htmlFor="firstName" className="form-label">First Name:</label>
                     <input
@@ -85,6 +85,12 @@ export const SignupForm = () => {
                     </button>
                 </Link>
             </form>
+            <p className="text-center mt-4">
+                ¿Ya tienes una cuenta?{" "}
+                <Link to="/user-login" className="text-primary">
+                    Inicia sesión aquí
+                </Link>
+            </p>
         </div>
     );
 };

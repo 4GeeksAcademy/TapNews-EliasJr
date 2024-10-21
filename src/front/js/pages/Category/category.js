@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button, Table, Container } from "react-bootstrap";
-import { Context } from "../store/appContext";
+import { Context } from "../../store/appContext";
 import Swal from "sweetalert2";
 
 export const Category = () => {

@@ -1,27 +1,27 @@
 import React, { useEffect, useContext, useState } from "react";
-import { Context } from "../store/appContext";
+import { Context } from "../../store/appContext";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "react-bootstrap";
-import "../../styles/index.css";
+import "../../../styles/index.css";
 
-export const PaginaPrivada = () => {
+export const UserPrivatePage = () => {
     const { store, actions } = useContext(Context);
-    const [isChecking, setIsChecking] = useState(true); // Estado para controlar la verificación
+    const [isChecking, setIsChecking] = useState(true);
 
     useEffect(() => {
         const checkAuth = async () => {
-            await actions.verifyToken(); // Verifica el token
-            setIsChecking(false); // Cambia el estado después de la verificación
+            await actions.verifyToken();
+            setIsChecking(false);
         };
-
         checkAuth();
-    }, [actions]); 
+    }, []);
+
     if (isChecking) {
         return <div className="text-center">Cargando...</div>;
     }
 
     if (!store.auth) {
-        return <Navigate to="/login" />;
+        return <Navigate to="/user-login" />;
     }
 
     return (

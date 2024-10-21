@@ -1,9 +1,9 @@
 import React, { useContext, useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Form, Button } from "react-bootstrap";
-import { Context } from "../store/appContext";
+import { Context } from "../../store/appContext";
 import Swal from "sweetalert2";
-import "../../styles/editArticle.css";
+import "../../../styles/editArticle.css";
 
 export const EditArticle = () => {
     const { store, actions } = useContext(Context);

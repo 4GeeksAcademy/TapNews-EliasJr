@@ -1,10 +1,10 @@
 import React, { useState, useContext } from "react";
-import { Context } from "../store/appContext";
+import { Context } from "../../store/appContext";
 import { Button } from "react-bootstrap";
 import { useNavigate, Link } from "react-router-dom";
-import "../../styles/index.css";
+import "../../../styles/index.css";
 
-export const LoginForm = ({ onClose }) => {
+export const UserLoginForm = ({ onClose }) => {
     const { store, actions } = useContext(Context);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -63,6 +63,12 @@ export const LoginForm = ({ onClose }) => {
                     </button>
                 </Link>
             </form>
+            <p className="text-center mt-4">
+                ¿No tienes una cuenta?{" "}
+                <Link to="/user-signup" className="text-primary">
+                    Regístrate aquí
+                </Link>
+            </p>
         </div>
     );
 };
