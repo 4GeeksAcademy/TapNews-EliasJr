@@ -10,7 +10,7 @@ export const LoginOk = () => {
     useEffect(() => {
         const redirectTimeout = setTimeout(() => {
             setRedirect(true);
-        }, 3000);
+        }, 2000);
 
         return () => clearTimeout(redirectTimeout);
     }, []);

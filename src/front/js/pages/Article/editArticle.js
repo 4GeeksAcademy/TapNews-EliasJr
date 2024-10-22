@@ -35,7 +35,7 @@ export const EditArticle = () => {
                 category: article.category
             });
         } else {
-            navigate("/articles"); // Redirige si no encuentra el artículo
+            navigate("/articles");
         }
     }, [id, store.articles]);
 

@@ -7,15 +7,15 @@ import Swal from "sweetalert2";
 export const Category = () => {
   const { store, actions } = useContext(Context);
   const location = useLocation();
-  const [editMode, setEditMode] = useState(null); // Controla qué categoría está siendo editada
-  const [editedCategory, setEditedCategory] = useState({}); // Guarda los valores editados
+  const [editMode, setEditMode] = useState(null);
+  const [editedCategory, setEditedCategory] = useState({});
 
   useEffect(() => {
     actions.loadCategories();
-  }, []);
+  }, [actions]);
 
   const handleDeleteCategory = async (id) => {
-    Swal.fire({
+    const result = await Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
       icon: "warning",
@@ -23,36 +23,28 @@ export const Category = () => {
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
       confirmButtonText: "Yes, delete it!",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await actions.deleteCategory(id);
-          Swal.fire({
-            title: "Deleted!",
-            text: "The category has been deleted.",
-            icon: "success",
-          });
-        } catch (error) {
-          Swal.fire({
-            title: "Error!",
-            text: "There was a problem deleting the category.",
-            icon: "error",
-          });
-        }
-      }
     });
+
+    if (result.isConfirmed) {
+      try {
+        await actions.deleteCategory(id);
+        Swal.fire("Deleted!", "The category has been deleted.", "success");
+      } catch (error) {
+        Swal.fire("Error!", "There was a problem deleting the category.", "error");
+      }
+    }
   };
 
   const handleEditClick = (category) => {
     setEditMode(category.id);
-    setEditedCategory({ ...category }); // Copia la categoría actual para la edición
+    setEditedCategory({ ...category });
   };
 
   const handleSaveClick = async (id) => {
     try {
-      await actions.updateCategory(id, editedCategory); // Guarda la categoría actualizada
+      await actions.updateCategory(id, editedCategory);
       Swal.fire("Success!", "The category has been updated.", "success");
-      setEditMode(null); // Salimos del modo de edición
+      setEditMode(null);
     } catch (error) {
       Swal.fire("Error!", "Failed to update the category.", "error");
     }

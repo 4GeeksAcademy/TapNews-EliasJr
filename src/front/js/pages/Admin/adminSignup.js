@@ -6,27 +6,21 @@ import Swal from "sweetalert2";
 export const AdminSignup = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
     
     const { actions } = useContext(Context);
     const navigate = useNavigate(); 
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         
-        const newUser = {
-            first_name: firstName,
-            last_name: lastName,
-            email: email,
-            password: password,
-        };
+        // Solo pasamos email y password a la acción adminSignup
+        const result = await actions.adminSignup(email, password);
 
-        actions.administratorSignup(newUser).then(() => {
+        if (result.success) {
             Swal.fire({
                 position: "center", 
                 icon: "success",
-                title: "¡Administrator registrado correctamente!",
+                title: "¡Administrador registrado correctamente!",
                 showConfirmButton: false,
                 timer: 2000,
             });
@@ -34,40 +28,25 @@ export const AdminSignup = () => {
             setTimeout(() => {
                 navigate("/admin-login");
             }, 1500);
-        });
+        } else {
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: result.message,
+            });
+        }
     };
 
     return (
-        <div className="container mt-5 bg-black w-25">
-            <h2 className="text-center text-white">Registrar administrador</h2>
-            <form onSubmit={handleSubmit} className="mt-4 bg-dark p-4 rounded">
+        <div className="container text-center mt-5">
+            <h1>Registro (admin)</h1>
+            <br />
+            <form onSubmit={handleSubmit}>
                 <div className="mb-3">
-                    <label htmlFor="firstName" className="form-label text-white">Nombre</label>
-                    <input
-                        type="text"
-                        className="form-control bg-dark text-white border-light"
-                        id="firstName"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="mb-3">
-                    <label htmlFor="lastName" className="form-label text-white">Apellido</label>
-                    <input
-                        type="text"
-                        className="form-control bg-dark text-white border-light"
-                        id="lastName"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="mb-3">
-                    <label htmlFor="email" className="form-label text-white">Correo Electrónico</label>
+                    <label htmlFor="email" className="form-label">Correo Electrónico</label>
                     <input
                         type="email"
-                        className="form-control bg-dark text-white border-light"
+                        className="form-control"
                         id="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -75,10 +54,10 @@ export const AdminSignup = () => {
                     />
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="password" className="form-label text-white">Contraseña</label>
+                    <label htmlFor="password" className="form-label">Contraseña</label>
                     <input
                         type="password"
-                        className="form-control bg-dark text-white border-light"
+                        className="form-control"
                         id="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -86,10 +65,15 @@ export const AdminSignup = () => {
                     />
                 </div>
                 <button type="submit" className="btn btn-primary">Registrarse</button>
+                <Link to="/">
+                    <button type="button" className="btn btn-secondary" style={{ margin: "5px" }}>
+                        Volver a Inicio
+                    </button>
+                </Link>
             </form>
-            <p className="mt-3 text-center text-white">
+            <p className="text-center mt-4">
                 ¿Ya tienes una cuenta?{" "}
-                <Link to="/administratorLogin" className="text-primary">Inicia sesión aquí</Link>
+                <Link to="/admin-login" className="text-primary">Inicia sesión aquí</Link>
             </p>
         </div>
     );

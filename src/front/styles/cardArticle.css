@@ -1,15 +1,15 @@
 .card-article {
-    height: 100%; /* Hace que todas las tarjetas tengan la misma altura */
+    height: 100%;
     display: flex;
-    flex-direction: column; /* Permite que los hijos se dispongan en columna */
+    flex-direction: column;
   }
   
   .card-article img {
-    height: 200px; /* Ajusta el tamaño de las imágenes según tus necesidades */
-    object-fit: cover; /* Mantiene la proporción de la imagen */
+    height: 200px;
+    object-fit: cover; 
   }
   
   .card-article .btn {
-    width: 100%; /* Hace que el botón "Leer Más" ocupe todo el ancho */
+    width: 50%;
   }
   

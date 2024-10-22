@@ -10,7 +10,7 @@ export const LogoutOk = () => {
     useEffect(() => {
         const redirectTimeout = setTimeout(() => {
             setRedirect(true);
-        }, 3000);
+        }, 2000);
 
         return () => clearTimeout(redirectTimeout);
     }, []);
@@ -19,14 +19,14 @@ export const LogoutOk = () => {
         <>
             {redirect ? <Navigate to="/" /> : null}
             <div
-                className="d-flex justify-content-center align-items-center mt-5"
+                className="d-flex justify-content-center align-items-center vh-100 m-5"
                 style={{
                     textShadow: "0 2px 4px rgba(0, 0, 0, 0.5)"
                 }}
             >
                 <div className="container text-center">
-                    <div className="row align-items-start mt-3">
-                        <div className="col-12 col-md-10">
+                    <div className="row justify-content-center">
+                        <div className="col-12 col-md-8">
                             <h2 className="display-6 fw-bold">Closing session...</h2>
                             <h5 className="mb-4">See you soon</h5>
                             <div className="spinner-border" role="status">

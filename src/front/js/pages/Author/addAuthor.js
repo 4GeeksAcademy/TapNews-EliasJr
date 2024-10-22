@@ -20,10 +20,10 @@ export const AddAuthor = () => {
             setId(store.temp.id);
         }
     }, [store.temp]);
-    
+
     useEffect(() => {
         actions.loadAuthors();
-    }, []);
+    }, [actions]);
 
     const handleSave = async (e) => {
         e.preventDefault();

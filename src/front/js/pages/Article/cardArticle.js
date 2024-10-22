@@ -1,7 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import { Card, Button, Accordion } from "react-bootstrap";
 import { Context } from "../../store/appContext";
-import { MdFavoriteBorder, MdFavorite } from "react-icons/md";
 import "../../../styles/cardArticle.css";
 
 export const CardArticle = ({
@@ -16,27 +15,8 @@ export const CardArticle = ({
   newspaper,
   category,
 }) => {
-  const { store, actions } = useContext(Context);
-  const [isLiked, setIsLiked] = useState(false);
+  const { store } = useContext(Context);
   const [expanded, setExpanded] = useState(false);
-
-  useEffect(() => {
-    // Verificar si el artículo está en favoritos cuando se monta el componente
-    const favoriteArticle = store.favoriteArticles.find(article => article.article_id === id);
-    setIsLiked(!!favoriteArticle);
-  }, [store.favoriteArticles, id]);
-
-  const handleLike = async () => {
-    const userId = "123"; // Cambia esto según la implementación de tu ID de usuario.
-
-    if (isLiked) {
-      await actions.removeFavoriteArticle(id);
-    } else {
-      await actions.addFavoriteArticle(id, userId);
-    }
-
-    setIsLiked(!isLiked);
-  };
 
   return (
     <Card className="my-3 shadow card-article">
@@ -53,11 +33,7 @@ export const CardArticle = ({
               {expanded ? "Ver Menos" : "Ver Más"}
             </Accordion.Header>
             <Accordion.Body>
-              {content && typeof content === "string" ? (
-                content
-              ) : (
-                <p>Contenido no disponible</p>
-              )}
+              {content && typeof content === "string" ? content : <p>Contenido no disponible</p>}
             </Accordion.Body>
           </Accordion.Item>
         </Accordion>
@@ -75,13 +51,6 @@ export const CardArticle = ({
           <Button variant="primary" href={link} target="_blank">
             Leer Más
           </Button>
-          <button onClick={handleLike} className="like-button" style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}>
-            {isLiked ? (
-              <MdFavorite color="red" size={24} title="Desmarcar como favorito" />
-            ) : (
-              <MdFavoriteBorder size={24} title="Marcar como favorito" />
-            )}
-          </button>
         </div>
       </Card.Body>
     </Card>

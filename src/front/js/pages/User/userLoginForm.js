@@ -5,7 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import "../../../styles/index.css";
 
-export const UserLoginForm = ({ onClose }) => {
+export const UserLoginForm = () => {
     const { actions } = useContext(Context);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -16,7 +16,7 @@ export const UserLoginForm = ({ onClose }) => {
         e.preventDefault();
         setError("");
 
-        const response = await actions.login(email, password);
+        const response = await actions.userLogin(email, password);
 
         if (response.success) {
             Swal.fire({

@@ -8,9 +8,8 @@ export const Author = () => {
     const { store, actions } = useContext(Context);
 
     useEffect(() => {
-        // Cargar los autores al montar el componente
         actions.loadAuthors();
-    }, []);
+    }, [actions]);
 
     return (
         <Container className="mt-5 shadow p-4 bg-white rounded">
@@ -23,7 +22,6 @@ export const Author = () => {
                     </Button>
                 </Link>
 
-                {/* Botón para volver a la página de inicio */}
                 <Link to="/">
                     <Button variant="secondary" className="mx-2 mb-2 shadow mt-2">
                         Back to Home

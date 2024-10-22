@@ -1,16 +1,15 @@
 import React, { useEffect, useContext } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button, Row, Col, Container } from "react-bootstrap";
 import { Context } from "../../store/appContext";
 import { CardNewspaper } from "./cardNewspaper";
 
 export const Newspaper = () => {
     const { store, actions } = useContext(Context);
-    const location = useLocation();
 
     useEffect(() => {
         actions.getNewspapers();
-    }, []);
+    }, [actions]);
 
     return (
         <Container className="mt-5 shadow p-4 bg-white rounded">

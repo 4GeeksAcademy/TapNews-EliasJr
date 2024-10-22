@@ -32,7 +32,7 @@ export const Article = () => {
 
             <hr className="my-4" />
 
-            {store.articles.length === 3 ? (
+            {store.articles.length === 0 ? (
                 <h3 className="text-center">No articles found. Please add one.</h3>
             ) : (
                 <Row>

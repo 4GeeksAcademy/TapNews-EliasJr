@@ -11,7 +11,7 @@ export const Navbar = () => {
     const navigate = useNavigate();
 
     const handleLogout = () => {
-        actions.logout();
+        actions.userLogout();
         setOpen(false);
         navigate("/logoutOk");
     };    

@@ -4,7 +4,7 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 from flask import Flask, request, jsonify, url_for, Blueprint
 from api.models import db, User, Category, UserCategory, Author, Newspaper, Article, FavoriteArticle, Administrator
 from api.utils import generate_sitemap, APIException
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -17,7 +17,6 @@ import requests
 api = Blueprint('api', __name__)
 
 CORS(api)
-
 
 ############# C.R.U.D USER ##############
 
@@ -139,27 +138,17 @@ def get_administrator2(administrator_id):
 def add_new_administrator():
     request_body_administrator = request.get_json()
 
-    if (
-        "first_name" not in request_body_administrator
-        or "last_name" not in request_body_administrator
-        or "email" not in request_body_administrator
-        or "password" not in request_body_administrator
-    ):
+    if "email" not in request_body_administrator or "password" not in request_body_administrator:
         return jsonify({"error": "Datos incompletos"}), 400
 
     existing_administrator = Administrator.query.filter_by(email=request_body_administrator["email"]).first()
     if existing_administrator:
         return jsonify({"error": "El correo ya está registrado"}), 400
-
-    hashed_password = bcrypt.generate_password_hash(request_body_administrator["password"]).decode('utf-8')
-
+    
     new_administrator = Administrator(
-        first_name=request_body_administrator["first_name"],
-        last_name=request_body_administrator["last_name"],
         email=request_body_administrator["email"],
-        password=hashed_password,
+        password=request_body_administrator["password"]
     )
-
     try:
         db.session.add(new_administrator)
         db.session.commit()
@@ -170,7 +159,6 @@ def add_new_administrator():
     response_body = {
         "msg": "Nuevo usuario añadido correctamente"
     }
-
     return jsonify(response_body), 201
 
 @api.route('/administrator/<int:administrator_id>', methods=['PUT'])
@@ -229,19 +217,21 @@ def signup():
         return jsonify({"msg": "El correo electrónico ya está registrado"}), 400
     
 @api.route("/user-login", methods=["POST"])
+@cross_origin()
 def login():
     email = request.json.get("email", None)
     password = request.json.get("password", None)
 
+    if not email or not password:
+        return jsonify({"msg": "Faltan credenciales"}), 400
+
     user = User.query.filter_by(email=email).first()
 
-    if user == None:
-        return jsonify({"msg" : "Incorrect email or password"}), 401
-    if user.password != password:
-        return jsonify({"msg": "Incorrect email or password"}), 401
+    if user is None or user.password != password:
+        return jsonify({"msg": "Credenciales incorrectas"}), 401
 
     access_token = create_access_token(identity=email)
-    return jsonify(access_token=access_token)
+    return jsonify(access_token=access_token), 200
 
 ############# ADMIN LOGIN-SIGNUP ##############
 
@@ -261,13 +251,12 @@ def administratorSignup():
     if existing_administrator:
         return jsonify({"error": "El correo ya está registrado"}), 400
 
-    hashed_password = bcrypt.generate_password_hash(request_body_administrator["password"]).decode('utf-8')
-
     new_administrator = Administrator(
         first_name=request_body_administrator["first_name"],
         last_name=request_body_administrator["last_name"],
         email=request_body_administrator["email"],
-        password=hashed_password,
+        password=request_body_administrator["password"],
+        is_active=True 
     )
 
     try:
@@ -284,6 +273,7 @@ def administratorSignup():
     return jsonify(response_body), 201
 
 @api.route('/admin-Login', methods=['POST'])
+@cross_origin()
 def administratorLogin():
     request_body_administrator = request.get_json()
 
@@ -292,7 +282,7 @@ def administratorLogin():
 
     administrator = Administrator.query.filter_by(email=request_body_administrator["email"]).first()
 
-    if not administrator or not bcrypt.check_password_hash(administrator.password, request_body_administrator["password"]):
+    if not administrator or administrator.password != request_body_administrator["password"]:
         return jsonify({"error": "Correo o contraseña incorrectos"}), 401
 
     access_token = create_access_token(identity=administrator.id)
@@ -375,7 +365,6 @@ def delete_category(category_id):
 ############# C.R.U.D USER CATEGORY ##############
 
 @api.route('/user-category', methods=['GET'])
-@jwt_required()
 def get_user_categories():
     user_categories = UserCategory.query.all()
     results = list(map(lambda item: item.serialize(), user_categories))
@@ -578,7 +567,6 @@ def update_newspaper(newspaper_id):
 
     return jsonify({'message': f'Usuario con id {newspaper_id} ha sido actualizado correctamente'}), 200
 
-
 ############# C.R.U.D ARTICLE ##############
 
 @api.route('/article', methods=['GET'])
@@ -682,16 +670,30 @@ def update_article(article_id):
 
 @api.route('/favorites', methods=['GET'])
 def get_favorites_articles():
-    favorites = FavoriteArticle.query.all()
+    user_id = request.args.get('user_id')
+    
+    if user_id:
+        favorites = FavoriteArticle.query.filter_by(user_id=user_id).all()
+    else:
+        favorites = FavoriteArticle.query.all()
+
     favorite_articles = [favorite.serialize() for favorite in favorites]
     return jsonify(favorite_articles), 200
 
 @api.route('/favorites/<int:article_id>', methods=['GET'])
 def get_favorite_article_by_id(article_id):
-    favorite = FavoriteArticle.query.filter_by(article_id=article_id).first()
+    user_id = request.args.get('user_id')
+
+    if not user_id:
+        return jsonify({'message': 'User ID is required.'}), 400
+
+    favorite = FavoriteArticle.query.filter_by(article_id=article_id, user_id=user_id).first()
+
     if favorite:
         return jsonify(favorite.serialize()), 200
+
     return jsonify({'message': 'Favorite not found.'}), 404
+
 
 @api.route('/favorites', methods=['POST'])
 def add_favorite():
@@ -705,54 +707,55 @@ def add_favorite():
         existing_favorite = FavoriteArticle.query.filter_by(user_id=user_id, article_id=article_id).first()
         if existing_favorite:
             return jsonify({'message': 'Article is already in favorites.'}), 409
-
+        
         favorite = FavoriteArticle(user_id=user_id, article_id=article_id)
         db.session.add(favorite)
         db.session.commit()
 
-        return jsonify({'message': 'Article added to favorites.'}), 201
+        return jsonify(favorite.serialize()), 201
     except Exception as e:
-        db.session.rollback() 
-        return jsonify({'message': str(e)}), 500
+        db.session.rollback()
+        return jsonify({'message': 'An error occurred while adding to favorites.', 'error': str(e)}), 500
 
 
 @api.route('/favorites/<int:article_id>', methods=['DELETE'])
 def remove_favorite(article_id):
-    favorite = FavoriteArticle.query.filter_by(article_id=article_id).first()
+
+    user_id = request.json.get('user_id')
+
+    if not user_id:
+        return jsonify({'message': 'User ID is required.'}), 400
+
+    favorite = FavoriteArticle.query.filter_by(article_id=article_id, user_id=user_id).first()
+
     if favorite:
         db.session.delete(favorite)
         db.session.commit()
         return jsonify({'message': 'Article removed from favorites.'}), 200
-    return jsonify({'message': 'Favorite not found.'}), 404
-
-
-
-@api.route('/api/articles/filter', methods=['GET'])
-def filter_articles():
-    author = request.args.get('author', default="", type=str)
-    newspaper = request.args.get('newspaper', default="", type=str)
-    category = request.args.get('category', default="", type=str)
-    title = request.args.get('title', default="", type=str)
-
-    filtered_articles = Article.query.filter(
-        (Article.author.contains(author)) &
-        (Article.newspaper.contains(newspaper)) &
-        (Article.category.contains(category)) &
-        (Article.title.contains(title))
-    ).all()
-
-    return jsonify([article.serialize() for article in filtered_articles])
+    
+    return jsonify({'message': 'Article was not found in favorites.'}), 404  
 
 
 ######## USER-ADMIN PRIVATE-PAGE########
+
+@api.route("/user-private-page", methods=["GET"])
+@cross_origin()
+def protected():
+    current_user = get_jwt_identity()
+    return jsonify(logged_in_as=current_user), 200
+
+@api.route('/admin-private-page', methods=['GET'])
+@cross_origin()
+def administratorhomepage():
+    return jsonify(message="Bienvenido a la página principal"), 200
+
 @api.route('/load-api-articles', methods=['GET'])
 def load_api_articles():
     try:
-        api_key = os.getenv('NEWS_API_KEY') 
-        response = requests.get('https://newsapi.org/v2/everything?', params={
-            'q': 'tesla',
-            'sortBy': 'publishedAt',
-            'apiKey': api_key  # Usar la API Key aquí
+        response = requests.get('https://newsapi.org/v2/top-headlines', params={
+            'country': 'us',
+            'category': 'business',
+            'apiKey': '078875a9809746b1ac17d25705f7991d'
         })
 
         if response.status_code != 200:
@@ -792,7 +795,7 @@ def load_api_articles():
 
             author = Author.query.filter_by(name=author_name).first()
             if not author:
-                author = Author(name=author_name, description=None, photo=None)
+                author = Author(name=author_name, description=description, photo=url_to_image)
                 db.session.add(author)
                 db.session.flush() 
 
@@ -823,7 +826,6 @@ def load_api_articles():
         db.session.rollback() 
         print(f"Error al procesar la solicitud: {str(e)}")
         return jsonify({'error': 'Error al procesar la solicitud: ' + str(e)}), 500
-
 
 
 if __name__ == "__main__":

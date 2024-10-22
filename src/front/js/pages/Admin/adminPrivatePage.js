@@ -7,30 +7,17 @@ import { Link } from "react-router-dom";
 export const AdminPrivatePage = () => {
     const { store, actions } = useContext(Context);
     const navigate = useNavigate();
-    const [selectedCategories, setSelectedCategories] = useState([]);
     const [showFilters, setShowFilters] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (!token) {
-            navigate("/administratorLogin");
+            navigate("/admin-login");
         } else {
             actions.getDataArticle();
             actions.loadCategories();
         }
     }, [actions, navigate]);
-
-    const handleCategoryChange = (category) => {
-        if (selectedCategories.includes(category)) {
-            setSelectedCategories(selectedCategories.filter((cat) => cat !== category));
-        } else {
-            setSelectedCategories([...selectedCategories, category]);
-        }
-    };
-
-    const filteredArticles = selectedCategories.length > 0
-        ? store.Articles.filter((article) => selectedCategories.includes(article.category.name))
-        : store.Articles;
 
     return (
         <div className="container-fluid mt-5 bg-black text-white p-4">
@@ -65,8 +52,8 @@ export const AdminPrivatePage = () => {
             </div>
 
             <div className="row justify-content-center my-5">
-                {filteredArticles.length > 0 ? (
-                    filteredArticles.map((article, index) => (
+                {store.Articles && store.Articles.length > 0 ? (
+                    store.Articles.map((article, index) => (
                         <div className="col-md-4 mb-4" key={index}>
                             <CardArticle
                                 title={article.title}
@@ -84,7 +71,7 @@ export const AdminPrivatePage = () => {
                         </div>
                     ))
                 ) : (
-                    <p>No se encontraron artículos para las categorías seleccionadas.</p>
+                    <p>No se encontraron artículos.</p>
                 )}
             </div>
         </div>

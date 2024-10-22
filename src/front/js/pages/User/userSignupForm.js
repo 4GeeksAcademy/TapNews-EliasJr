@@ -14,7 +14,7 @@ export const UserSignupForm = () => {
 
     const handleSignup = async (e) => {
         e.preventDefault();
-        const response = await actions.signup(firstName, lastName, email, password);
+        const response = await actions.userSignup(firstName, lastName, email, password);
         if (response.success) {
             setSignupSuccess(true);
             Swal.fire({
@@ -22,7 +22,6 @@ export const UserSignupForm = () => {
                 icon: 'success',
                 confirmButtonText: 'Aceptar',
             }).then(() => {
-                // Redirigir a la página de inicio de sesión después de la alerta
                 window.location.href = '/user-login';
             });
         } else {
