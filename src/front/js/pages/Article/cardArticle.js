@@ -15,8 +15,25 @@ export const CardArticle = ({
   newspaper,
   category,
 }) => {
-  const { store } = useContext(Context);
+  const { store, actions } = useContext(Context);
   const [expanded, setExpanded] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  // Verificar si el artículo ya está en favoritos
+  useEffect(() => {
+    const favoriteExists = store.favArticles.some((fav) => fav.article_id === id);
+    setIsFavorite(favoriteExists);
+  }, [store.favArticles, id]);
+
+  const handleFavoriteToggle = () => {
+    const userId = 1; // Cambiar esto según la implementación de tu sistema de usuarios
+    if (isFavorite) {
+      actions.removeFavorite(id, userId);
+    } else {
+      actions.addFavorite(id, userId);
+    }
+    setIsFavorite(!isFavorite);
+  };
 
   return (
     <Card className="my-3 shadow card-article">
@@ -50,6 +67,13 @@ export const CardArticle = ({
         <div className="d-flex justify-content-between align-items-center mt-auto">
           <Button variant="primary" href={link} target="_blank">
             Leer Más
+          </Button>
+          <Button
+            variant={isFavorite ? "danger" : "outline-primary"} // Cambia el color según si es favorito
+            className="ml-2"
+            onClick={handleFavoriteToggle}
+          >
+            {isFavorite ? "❤️" : "🤍"} {/* Cambiar el ícono según el estado */}
           </Button>
         </div>
       </Card.Body>

@@ -1,22 +1,23 @@
-import React, { useContext } from "react";
-import { Card, Button } from "react-bootstrap";
+import React, { useContext, useState } from "react";
+import { Card, Button, Accordion } from "react-bootstrap";
 import { Context } from "../../store/appContext";
-import "../../../styles/index.css";
+import "../../../styles/cardAuthor.css"; // Importa el archivo CSS
 
-export const CardAuthor = (props) => {
+export const CardAuthor = ({ id, name, description, photo, additionalInfo }) => {
   const { actions } = useContext(Context);
+  const [expanded, setExpanded] = useState(false);
 
   return (
-    <Card className="m-2 shadow-sm" style={{ width: "18rem" }}>
-      <Card.Img variant="top" src={props.photo} alt={props.name} />
-      <Card.Body>
-        <Card.Title>{props.name}</Card.Title>
-        <Card.Text>{props.description}</Card.Text>
-        <Card.Text>ID: {props.id}</Card.Text>
-        <div className="d-flex justify-content-between align-items-center mt-3">
-          <Button variant="outline-primary" onClick={() => actions.loadAuthors()}>
-            View Details
-          </Button>
+    <Card className="m-2 shadow-sm card-author">
+      {photo ? (
+        <Card.Img variant="top" src={photo} alt={name} />
+      ) : (
+        <Card.Img variant="top" src="path/to/default-image.jpg" alt="Image not available" />
+      )}
+      <Card.Body className="d-flex flex-column">
+        <Card.Title>{name}</Card.Title>
+        <Card.Text>{description}</Card.Text>
+        <div className="d-flex justify-content-between align-items-center mt-auto">
         </div>
       </Card.Body>
     </Card>

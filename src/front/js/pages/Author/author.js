@@ -1,6 +1,6 @@
 import React, { useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
-import { Button, Row, Col, Container } from "react-bootstrap";
+import { Button, Container, Row, Col } from "react-bootstrap";
 import { Context } from "../../store/appContext";
 import { CardAuthor } from "./cardAuthor";
 
@@ -9,34 +9,31 @@ export const Author = () => {
 
     useEffect(() => {
         actions.loadAuthors();
-    }, [actions]);
+    }, []);
 
     return (
-        <Container className="mt-5 shadow p-4 bg-white rounded">
-            <h1 className="display-4 text-center mb-4 text-dark">Authors</h1>
+        <Container className="my-4">
+            <div className="d-flex justify-content-between mt-3 mb-3">
+                <h1 className="display-4">Authors</h1>
+                <div>
+                    <Link to="/add-author" className="me-2">
+                        <Button variant="primary" className="shadow">Add Author</Button>
+                    </Link>
 
-            <div className="d-flex justify-content-between mt-3 mb-3 flex-wrap">
-                <Link to="/add-author">
-                    <Button variant="primary" className="mx-2 mb-2 shadow">
-                        Add Author
-                    </Button>
-                </Link>
-
-                <Link to="/">
-                    <Button variant="secondary" className="mx-2 mb-2 shadow mt-2">
-                        Back to Home
-                    </Button>
-                </Link>
+                    <Link to="/admin-private-page" className="me-2">
+                        <Button variant="secondary" className="shadow">Back to Home</Button>
+                    </Link>
+                </div>
             </div>
 
             <hr className="my-4" />
 
-            <Row className="justify-content-center">
-                {store.authors.length === 0 ? (
-                    <p className="text-center">--- No authors available ---</p>
-                ) : (
-                    store.authors.map((author) => (
-                        <Col md={4} key={author.id} className="mb-4">
+            {store.authors.length === 0 ? (
+                <h3 className="text-center">--- No authors available ---</h3>
+            ) : (
+                <Row>
+                    {store.authors.map((author) => (
+                        <Col md={4} key={author.id}>
                             <CardAuthor
                                 id={author.id}
                                 name={author.name}
@@ -44,9 +41,9 @@ export const Author = () => {
                                 photo={author.photo}
                             />
                         </Col>
-                    ))
-                )}
-            </Row>
+                    ))}
+                </Row>
+            )}
         </Container>
     );
 };

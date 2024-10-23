@@ -24,7 +24,7 @@ export const Article = () => {
                         <Button variant="primary" className="shadow">Add Article</Button>
                     </Link>
 
-                    <Link to="/" className="me-2">
+                    <Link to="/admin-private-page" className="me-2">
                         <Button variant="secondary" className="shadow">Back to home</Button>
                     </Link>
                 </div>

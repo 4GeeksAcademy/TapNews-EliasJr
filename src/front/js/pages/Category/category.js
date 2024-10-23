@@ -1,18 +1,17 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button, Table, Container } from "react-bootstrap";
 import { Context } from "../../store/appContext";
 import Swal from "sweetalert2";
 
 export const Category = () => {
   const { store, actions } = useContext(Context);
-  const location = useLocation();
   const [editMode, setEditMode] = useState(null);
   const [editedCategory, setEditedCategory] = useState({});
 
   useEffect(() => {
     actions.loadCategories();
-  }, [actions]);
+  }, []);
 
   const handleDeleteCategory = async (id) => {
     const result = await Swal.fire({
@@ -58,23 +57,17 @@ export const Category = () => {
   };
 
   return (
-    <Container className="my-4 shadow p-4 bg-white rounded">
-      <h1 className="display-4 text-center my-4 text-dark">Categories</h1>
-
-      <div className="d-flex justify-content-between mt-3 mb-3 flex-wrap">
-        <Link to="/add-category">
-          <Button variant="primary" className="mx-2 mb-2 shadow">
-            Add Category
-          </Button>
-        </Link>
-
-        {location.pathname === "/categories" && (
-          <Link to="/">
-            <Button variant="secondary" className="mx-2 mb-2 shadow mt-2">
-              Back to Home
-            </Button>
+    <Container className="my-4">
+      <div className="d-flex justify-content-between mt-3 mb-3">
+        <h1 className="display-4">Categories</h1>
+        <div>
+          <Link to="/add-category" className="me-2">
+            <Button variant="primary" className="shadow">Add Category</Button>
           </Link>
-        )}
+          <Link to="/admin-private-page" className="me-2">
+            <Button variant="secondary" className="shadow">Back to Home</Button>
+          </Link>
+        </div>
       </div>
 
       <hr className="my-4" />
@@ -93,7 +86,7 @@ export const Category = () => {
             {store.categories.length === 0 ? (
               <tr>
                 <td colSpan="4" className="text-center">
-                  --- Add a new category ---
+                  --- No categories found. Please add one ---
                 </td>
               </tr>
             ) : (

@@ -12,16 +12,23 @@ export const AdmiLogin = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await actions.adminLogin({ email, password });
-            console.log("Login successful");
-
-            Swal.fire({
-                title: '¡Inicio de sesión exitoso!',
-                icon: 'success',
-                confirmButtonText: 'Aceptar',
-            }).then(() => {
-                navigate("/admin-private-page");
-            });
+            const result = await actions.adminLogin(email, password);
+    
+            if (result.success) {
+                Swal.fire({
+                    title: '¡Inicio de sesión exitoso!',
+                    icon: 'success',
+                    confirmButtonText: 'Aceptar',
+                }).then(() => {
+                    navigate("/admin-private-page");
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de inicio de sesión',
+                    text: result.message,
+                });
+            }
         } catch (error) {
             console.error("Login error:", error);
             Swal.fire({
@@ -31,6 +38,7 @@ export const AdmiLogin = () => {
             });
         }
     };
+    
 
     return (
         <div className="container text-center mt-5">

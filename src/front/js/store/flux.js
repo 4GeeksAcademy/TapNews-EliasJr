@@ -11,42 +11,42 @@ const getState = ({ getStore, getActions, setStore }) => {
 			newspapers: [],
 			articles: [],
 			article: null,
-			favoriteArticles: [],
+			favArticles: [],
 		},
 		actions: {
-			userLogin: async (email, password) => {
-				const requestOptions = {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({
-						email: email,
-						password: password,
-					}),
-				};
+            userLogin: async (email, password) => {
+                const requestOptions = {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                    }),
+                };
 
-				try {
-					const response = await fetch(
-						process.env.BACKEND_URL + "/api/user-login",
-						requestOptions
-					);
+                try {
+                    const response = await fetch(
+                        process.env.BACKEND_URL + "/api/user-login",
+                        requestOptions
+                    );
 
-					if (response.status !== 200) {
-						const errorData = await response.json();
-						return {
-							success: false,
-							message: errorData.msg || "Credenciales incorrectas",
-						};
-					}
-					const data = await response.json();
-					localStorage.setItem("token", data.access_token);
-					setStore({ auth: true });
+                    if (response.status !== 200) {
+                        const errorData = await response.json();
+                        return {
+                            success: false,
+                            message: errorData.msg || "Credenciales incorrectas",
+                        };
+                    }
+                    const data = await response.json();
+                    localStorage.setItem("token", data.access_token);
+                    setStore({ auth: true });
 
-					return { success: true };
-				} catch (error) {
-					console.error("Error during login:", error);
-					return { success: false, message: "Error de conexión al servidor" };
-				}
-			},
+                    return { success: true };
+                } catch (error) {
+                    console.error("Error during login:", error);
+                    return { success: false, message: "Error de conexión al servidor" };
+                }
+            },
 
 			userLogout: () => {
 				localStorage.removeItem("token");
@@ -140,48 +140,6 @@ const getState = ({ getStore, getActions, setStore }) => {
 				} catch (error) {
 					console.error("Error durante el registro:", error);
 					return { success: false, message: "Error de conexión al servidor" };
-				}
-			},
-
-			verifyToken: async () => {
-				const token = localStorage.getItem("token");
-
-				if (!token) {
-					setStore({ auth: false });
-					console.log("No token found, setting auth to false.");
-					return false;
-				}
-
-				const requestOptions = {
-					method: "GET",
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer ${token}`,
-					},
-				};
-
-				try {
-					const response = await fetch(
-						`${process.env.BACKEND_URL}/api/user-private-page`,
-						requestOptions
-					);
-
-					console.log("Response status:", response.status);
-
-					if (response.status === 200) {
-						setStore({ auth: true });
-						console.log("Token is valid, setting auth to true.");
-						return true;
-					} else {
-						console.log("Token is invalid or expired, removing token and setting auth to false.");
-						localStorage.removeItem("token");
-						setStore({ auth: false });
-						return false;
-					}
-				} catch (error) {
-					console.error("Error verifying token:", error);
-					setStore({ auth: false });
-					return false;
 				}
 			},
 
@@ -282,11 +240,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 					const response = await fetch(`${process.env.BACKEND_URL}/api/author`);
 					if (!response.ok) throw new Error("Failed to load authors");
 					const data = await response.json();
-
-					setStore((prevStore) => ({
-						...prevStore,
-						authors: data,
-					}));
+					setStore({ authors: data });
 				} catch (error) {
 					console.error("Error loading authors:", error);
 				}
@@ -358,15 +312,11 @@ const getState = ({ getStore, getActions, setStore }) => {
 			getNewspapers: async () => {
 				try {
 					const response = await fetch(`${process.env.BACKEND_URL}/api/newspaper`);
-					if (!response.ok) throw new Error('Error fetching newspapers');
+					if (!response.ok) throw new Error("Failed to load newspapers");
 					const data = await response.json();
-
-					setStore((prevStore) => ({
-						...prevStore,
-						newspapers: data,
-					}));
+					setStore({ newspapers: data });
 				} catch (error) {
-					console.error("Error loading newspapers: ", error);
+					console.error("Error loading authors:", error);
 				}
 			},
 
@@ -498,6 +448,80 @@ const getState = ({ getStore, getActions, setStore }) => {
 					}
 				} catch (error) {
 					console.error('Error en la solicitud de actualizar artículo:', error);
+				}
+			},
+
+			getFavorites: async () => {
+				try {
+					const response = await fetch(`${process.env.BACKEND_URL}/api/favorites`, {
+						method: 'GET',
+						headers: {
+							'Authorization': `Bearer ${localStorage.getItem('token')}`
+						},
+					});
+					
+					const data = await response.json();
+					
+					if (response.ok) {
+						console.log('Favoritos obtenidos:', data);
+						setStore({ favArticles: data });
+					} else {
+						console.error('Error al obtener los artículos favoritos:', data.message || data);
+					}
+				} catch (error) {
+					console.error('Error en la solicitud de obtener artículos favoritos:', error);
+				}
+			},
+
+			addFavorite: async (articleId, userId) => {
+				try {
+					const response = await fetch(`${process.env.BACKEND_URL}/api/favorites`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							// Asegúrate de incluir token si es necesario
+							// 'Authorization': `Bearer ${localStorage.getItem('token')}`
+						},
+						body: JSON.stringify({ article_id: articleId, user_id: userId }),
+					});
+			
+					if (!response.ok) {
+						const errorData = await response.text(); // Cambia a text() para ver la respuesta en HTML
+						console.error('Error al agregar artículo a favoritos:', errorData);
+						return; // Salir de la función
+					}
+			
+					const data = await response.json();
+					setStore((prevStore) => ({
+						...prevStore,
+						favArticles: [...prevStore.favArticles, data], // Agregar el artículo a favoritos
+					}));
+				} catch (error) {
+					console.error('Error en la solicitud de agregar a favoritos:', error);
+				}
+			},
+			
+			removeFavorite: async (articleId, userId) => {
+				try {
+					const response = await fetch(`${process.env.BACKEND_URL}/api/favorites/${articleId}`, {
+						method: 'DELETE',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({ user_id: userId }), // Enviar el user_id
+					});
+			
+					if (response.ok) {
+						setStore((prevStore) => ({
+							...prevStore,
+							favArticles: prevStore.favArticles.filter((fav) => fav.article_id !== articleId), // Eliminar el artículo de favoritos
+						}));
+					} else {
+						const data = await response.json();
+						console.error('Error al eliminar artículo de favoritos:', data.message || data);
+					}
+				} catch (error) {
+					console.error('Error en la solicitud de eliminar de favoritos:', error);
 				}
 			},
 

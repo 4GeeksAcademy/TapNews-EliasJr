@@ -1,50 +1,49 @@
 import React, { useEffect, useContext, useState } from "react";
 import { Context } from "../../store/appContext";
-import { Navigate } from "react-router-dom";
-import { Container, Row, Col, Spinner, Alert, Button, Nav } from "react-bootstrap";
+import { Container, Row, Col, Button, Nav, Dropdown } from "react-bootstrap";
 import "../../../styles/index.css";
 import { CardArticle } from "../Article/cardArticle";
 
 export const UserPrivatePage = () => {
     const { store, actions } = useContext(Context);
-    const [isChecking, setIsChecking] = useState(true);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [visibleArticles, setVisibleArticles] = useState(6);
-    const [activeTab, setActiveTab] = useState("all");
+    const [activeTab, setActiveTab] = useState("todos");
+    const [selectedCategory, setSelectedCategory] = useState("all");  // Nueva variable de estado
 
     useEffect(() => {
-        const checkAuth = async () => {
-            await actions.verifyToken();
-            setIsChecking(false);
-        };
-
         const fetchData = async () => {
             try {
                 await actions.getArticles();
-                setLoading(false);
+                await actions.getFavorites();
+                await actions.loadCategories();  // Obtener las categorías desde el backend
             } catch (err) {
-                setError("Error fetching data");
-                setLoading(false);
+                console.error("Error fetching data", err);
             }
         };
-
-        checkAuth().then(fetchData);
+        fetchData();
     }, []);
 
-    const loadMoreArticles = () => {
-        setVisibleArticles((prev) => prev + 6); 
+    const loadMoreArticles = () => setVisibleArticles((prev) => prev + 6);
+
+    const handleTabSelect = (tab) => {
+        setActiveTab(tab);
+        setVisibleArticles(6);
     };
 
-    if (isChecking) {
-        return <div className="text-center"><h1>Cargando...</h1></div>;
-    }
+    // Función para manejar el cambio de categoría
+    const handleCategorySelect = (category) => {
+        setSelectedCategory(category);
+        setVisibleArticles(6);
+    };
 
-    if (!store.auth) {
-        return <Navigate to="/user-login" />;
-    }
+    // Filtrar artículos por categoría seleccionada en la pestaña "Todos"
+    const filteredArticles =
+        selectedCategory === "all"
+            ? store.articles
+            : store.articles.filter((article) => article.category === selectedCategory);
 
-    const articlesToShow = store.articles; // Solo mostramos los artículos
+    const articlesToDisplay =
+        activeTab === "favoritos" ? store.favArticles : filteredArticles;
 
     return (
         <Container className="mt-5">
@@ -52,21 +51,50 @@ export const UserPrivatePage = () => {
 
             <Nav variant="tabs" className="justify-content-center mb-4">
                 <Nav.Item>
-                    <Nav.Link active={activeTab === "all"} onClick={() => setActiveTab("all")}>Todos</Nav.Link>
+                    <Nav.Link
+                        active={activeTab === "todos"}
+                        onClick={() => handleTabSelect("todos")}
+                    >
+                        Todos
+                    </Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                    <Nav.Link
+                        active={activeTab === "favoritos"}
+                        onClick={() => handleTabSelect("favoritos")}
+                    >
+                        Favoritos
+                    </Nav.Link>
                 </Nav.Item>
             </Nav>
 
-            {loading && (
-                <div className="text-center my-5">
-                    <Spinner animation="border" role="status">
-                        <span className="visually-hidden">Cargando...</span>
-                    </Spinner>
+            {/* Mostrar filtro de categorías solo en la pestaña "Todos" */}
+            {activeTab === "todos" && (
+                <div className="d-flex justify-content-center mb-4">
+                    <Dropdown onSelect={handleCategorySelect}>
+                        <Dropdown.Toggle variant="success" id="dropdown-basic">
+                            {selectedCategory === "all" ? "Todas las categorías" : selectedCategory}
+                        </Dropdown.Toggle>
+
+                        <Dropdown.Menu>
+                            <Dropdown.Item eventKey="all">Todas las categorías</Dropdown.Item>
+                            {store.categories.map((category) => (
+                                <Dropdown.Item key={category.id} eventKey={category.name}>
+                                    {category.name}
+                                </Dropdown.Item>
+                            ))}
+                        </Dropdown.Menu>
+                    </Dropdown>
                 </div>
             )}
-            {error && <Alert variant="danger">{error}</Alert>}
-            <Row>
-                {articlesToShow.length > 0 ? (
-                    articlesToShow.slice(0, visibleArticles).map((article) => (
+
+            {articlesToDisplay.length === 0 ? (
+                <div className="text-center my-5">
+                    <h5>No hay artículos disponibles en esta pestaña.</h5>
+                </div>
+            ) : (
+                <Row>
+                    {articlesToDisplay.slice(0, visibleArticles).map((article) => (
                         <Col md={4} key={article.id} className="mb-4">
                             <CardArticle
                                 id={article.id}
@@ -81,14 +109,11 @@ export const UserPrivatePage = () => {
                                 category={article.category}
                             />
                         </Col>
-                    ))
-                ) : (
-                    <Col>
-                        <Alert variant="info">No hay artículos disponibles.</Alert>
-                    </Col>
-                )}
-            </Row>
-            {articlesToShow.length > visibleArticles && ( 
+                    ))}
+                </Row>
+            )}
+
+            {articlesToDisplay.length > visibleArticles && (
                 <div className="text-center my-4">
                     <Button onClick={loadMoreArticles} variant="primary">
                         Cargar más artículos

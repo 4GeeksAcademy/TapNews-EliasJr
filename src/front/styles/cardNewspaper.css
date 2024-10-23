@@ -1,0 +1,31 @@
+.card-newspaper {
+    border: none;
+    border-radius: 15px; 
+    transition: transform 0.2s, box-shadow 0.2s; 
+}
+
+.card-newspaper:hover {
+    transform: translateY(-5px); 
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); 
+}
+
+.card-newspaper img {
+    border-radius: 15px 15px 0 0; 
+    height: 200px; 
+    object-fit: cover; 
+}
+
+.card-newspaper .card-title {
+    font-size: 1.5rem; 
+    color: #343a40; 
+}
+
+.card-newspaper .card-text {
+    font-size: 1rem; 
+    color: #6c757d; 
+}
+
+.card-newspaper .btn {
+    width: 100%; 
+    font-weight: bold;
+}
