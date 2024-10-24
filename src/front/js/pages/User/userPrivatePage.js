@@ -8,20 +8,18 @@ export const UserPrivatePage = () => {
     const { store, actions } = useContext(Context);
     const [visibleArticles, setVisibleArticles] = useState(6);
     const [activeTab, setActiveTab] = useState("todos");
-    const [selectedCategory, setSelectedCategory] = useState("all");  // Nueva variable de estado
+    const [selectedCategory, setSelectedCategory] = useState("all");
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                await actions.getArticles();
-                await actions.getFavorites();
-                await actions.loadCategories();  // Obtener las categorías desde el backend
-            } catch (err) {
-                console.error("Error fetching data", err);
-            }
-        };
-        fetchData();
+        actions.getArticles();
+        actions.loadCategories();
     }, []);
+
+    useEffect(() => {
+        if (activeTab === "favoritos") {
+            actions.getFavorites();
+        }
+    }, [activeTab]);
 
     const loadMoreArticles = () => setVisibleArticles((prev) => prev + 6);
 
@@ -30,13 +28,11 @@ export const UserPrivatePage = () => {
         setVisibleArticles(6);
     };
 
-    // Función para manejar el cambio de categoría
     const handleCategorySelect = (category) => {
         setSelectedCategory(category);
         setVisibleArticles(6);
     };
 
-    // Filtrar artículos por categoría seleccionada en la pestaña "Todos"
     const filteredArticles =
         selectedCategory === "all"
             ? store.articles
@@ -68,7 +64,6 @@ export const UserPrivatePage = () => {
                 </Nav.Item>
             </Nav>
 
-            {/* Mostrar filtro de categorías solo en la pestaña "Todos" */}
             {activeTab === "todos" && (
                 <div className="d-flex justify-content-center mb-4">
                     <Dropdown onSelect={handleCategorySelect}>
@@ -107,6 +102,7 @@ export const UserPrivatePage = () => {
                                 author={article.author}
                                 newspaper={article.newspaper}
                                 category={article.category}
+                                isFavorite={store.favArticles.some(fav => fav.article_id === article.id)}
                             />
                         </Col>
                     ))}

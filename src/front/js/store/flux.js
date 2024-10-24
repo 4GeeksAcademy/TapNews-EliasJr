@@ -14,44 +14,6 @@ const getState = ({ getStore, getActions, setStore }) => {
 			favArticles: [],
 		},
 		actions: {
-            userLogin: async (email, password) => {
-                const requestOptions = {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        email: email,
-                        password: password,
-                    }),
-                };
-
-                try {
-                    const response = await fetch(
-                        process.env.BACKEND_URL + "/api/user-login",
-                        requestOptions
-                    );
-
-                    if (response.status !== 200) {
-                        const errorData = await response.json();
-                        return {
-                            success: false,
-                            message: errorData.msg || "Credenciales incorrectas",
-                        };
-                    }
-                    const data = await response.json();
-                    localStorage.setItem("token", data.access_token);
-                    setStore({ auth: true });
-
-                    return { success: true };
-                } catch (error) {
-                    console.error("Error during login:", error);
-                    return { success: false, message: "Error de conexión al servidor" };
-                }
-            },
-
-			userLogout: () => {
-				localStorage.removeItem("token");
-				setStore({ auth: false });
-			},
 
 			userSignup: async (firstName, lastName, email, password) => {
 				const requestOptions = {
@@ -76,6 +38,45 @@ const getState = ({ getStore, getActions, setStore }) => {
 					console.error("Error during signup:", error);
 					return { success: false, message: "Error de conexión al servidor" };
 				}
+			},
+
+			userLogin: async (email, password) => {
+				const requestOptions = {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						email: email,
+						password: password,
+					}),
+				};
+
+				try {
+					const response = await fetch(
+						process.env.BACKEND_URL + "/api/user-login",
+						requestOptions
+					);
+
+					if (response.status !== 200) {
+						const errorData = await response.json();
+						return {
+							success: false,
+							message: errorData.msg || "Credenciales incorrectas",
+						};
+					}
+					const data = await response.json();
+					localStorage.setItem("token", data.access_token);
+					setStore({ auth: true });
+
+					return { success: true };
+				} catch (error) {
+					console.error("Error during login:", error);
+					return { success: false, message: "Error de conexión al servidor" };
+				}
+			},
+
+			userLogout: () => {
+				localStorage.removeItem("token");
+				setStore({ auth: false });
 			},
 
 			adminLogin: async (email, password) => {
@@ -214,24 +215,6 @@ const getState = ({ getStore, getActions, setStore }) => {
 					setStore({ userCategories: data });
 				} catch (error) {
 					console.error("Error loading user categories:", error);
-				}
-			},
-
-			saveUserCategories: async (selectedCategories) => {
-				const token = localStorage.getItem("token");
-				try {
-					const response = await fetch(`${process.env.BACKEND_URL}/api/user-category`, {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-							Authorization: `Bearer ${token}`,
-						},
-						body: JSON.stringify({ selectedCategories })
-					});
-					if (!response.ok) throw new Error("Failed to save preferred categories");
-					await getActions().getUserCategories();
-				} catch (error) {
-					console.error("Error saving preferred categories:", error);
 				}
 			},
 
@@ -394,7 +377,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 
 			createArticle: async (articleData) => {
 				try {
-					const resp = await fetch(process.env.BACKEND_URL + "/api/article", {
+					const resp = await fetch(process.env.BACKEND_URL + "api/article", {
 						method: "POST",
 						headers: {
 							"Content-Type": "application/json"
@@ -456,12 +439,12 @@ const getState = ({ getStore, getActions, setStore }) => {
 					const response = await fetch(`${process.env.BACKEND_URL}/api/favorites`, {
 						method: 'GET',
 						headers: {
-							'Authorization': `Bearer ${localStorage.getItem('token')}`
+							'Authorization': `Bearer ${localStorage.getItem('token')}`,
 						},
 					});
-					
+			
 					const data = await response.json();
-					
+			
 					if (response.ok) {
 						console.log('Favoritos obtenidos:', data);
 						setStore({ favArticles: data });
@@ -472,29 +455,31 @@ const getState = ({ getStore, getActions, setStore }) => {
 					console.error('Error en la solicitud de obtener artículos favoritos:', error);
 				}
 			},
-
+			
 			addFavorite: async (articleId, userId) => {
 				try {
-					const response = await fetch(`${process.env.BACKEND_URL}/api/favorites`, {
+					const response = await fetch(`${process.env.BACKEND_URL}api/favorites`, {
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/json',
-							// Asegúrate de incluir token si es necesario
-							// 'Authorization': `Bearer ${localStorage.getItem('token')}`
+							'Authorization': `Bearer ${localStorage.getItem('token')}`
 						},
 						body: JSON.stringify({ article_id: articleId, user_id: userId }),
 					});
 			
 					if (!response.ok) {
-						const errorData = await response.text(); // Cambia a text() para ver la respuesta en HTML
+						const errorData = await response.text(); 
 						console.error('Error al agregar artículo a favoritos:', errorData);
-						return; // Salir de la función
+						return;
 					}
 			
 					const data = await response.json();
 					setStore((prevStore) => ({
 						...prevStore,
-						favArticles: [...prevStore.favArticles, data], // Agregar el artículo a favoritos
+						favArticles: [...prevStore.favArticles, data],
+						articles: prevStore.articles.map((article) =>
+							article.id === articleId ? { ...article, isFavorite: true } : article
+						),
 					}));
 				} catch (error) {
 					console.error('Error en la solicitud de agregar a favoritos:', error);
@@ -503,18 +488,22 @@ const getState = ({ getStore, getActions, setStore }) => {
 			
 			removeFavorite: async (articleId, userId) => {
 				try {
-					const response = await fetch(`${process.env.BACKEND_URL}/api/favorites/${articleId}`, {
+					const response = await fetch(`${process.env.BACKEND_URL}api/favorites/${articleId}`, {
 						method: 'DELETE',
 						headers: {
 							'Content-Type': 'application/json',
+							'Authorization': `Bearer ${localStorage.getItem('token')}`
 						},
-						body: JSON.stringify({ user_id: userId }), // Enviar el user_id
+						body: JSON.stringify({ user_id: userId }),
 					});
 			
 					if (response.ok) {
 						setStore((prevStore) => ({
 							...prevStore,
-							favArticles: prevStore.favArticles.filter((fav) => fav.article_id !== articleId), // Eliminar el artículo de favoritos
+							favArticles: prevStore.favArticles.filter((fav) => fav.article_id !== articleId),
+							articles: prevStore.articles.map((article) =>
+								article.id === articleId ? { ...article, isFavorite: false } : article
+							),
 						}));
 					} else {
 						const data = await response.json();
@@ -524,6 +513,8 @@ const getState = ({ getStore, getActions, setStore }) => {
 					console.error('Error en la solicitud de eliminar de favoritos:', error);
 				}
 			},
+			
+			
 
 			updateArticleCategory: async (id, categoryId) => {
 				try {

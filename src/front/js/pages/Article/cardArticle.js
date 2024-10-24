@@ -14,19 +14,20 @@ export const CardArticle = ({
   author,
   newspaper,
   category,
+  isFavoriteProp 
 }) => {
   const { store, actions } = useContext(Context);
   const [expanded, setExpanded] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(isFavoriteProp || false); 
 
-  // Verificar si el artículo ya está en favoritos
+  // Sincronizar el estado de favoritos con el store
   useEffect(() => {
     const favoriteExists = store.favArticles.some((fav) => fav.article_id === id);
     setIsFavorite(favoriteExists);
   }, [store.favArticles, id]);
 
   const handleFavoriteToggle = () => {
-    const userId = 1; // Cambiar esto según la implementación de tu sistema de usuarios
+    const userId = 1; // 
     if (isFavorite) {
       actions.removeFavorite(id, userId);
     } else {
@@ -69,11 +70,11 @@ export const CardArticle = ({
             Leer Más
           </Button>
           <Button
-            variant={isFavorite ? "danger" : "outline-primary"} // Cambia el color según si es favorito
+            variant={isFavorite ? "danger" : "outline-primary"}
             className="ml-2"
             onClick={handleFavoriteToggle}
           >
-            {isFavorite ? "❤️" : "🤍"} {/* Cambiar el ícono según el estado */}
+            {isFavorite ? "❤️" : "🤍"}
           </Button>
         </div>
       </Card.Body>

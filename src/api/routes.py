@@ -713,8 +713,11 @@ def get_favorite_article_by_id(article_id):
 
     return jsonify({'message': 'Favorite not found.'}), 404
 
-@api.route('/api/favorites', methods=['POST'])
+
+
+@api.route('/favorites', methods=['POST'])
 def add_favorite():
+
     data = request.get_json()
     user_id = data.get('user_id')
     article_id = data.get('article_id')
