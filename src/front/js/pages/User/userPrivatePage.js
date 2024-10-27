@@ -92,7 +92,7 @@ export const UserPrivatePage = () => {
                     {articlesToDisplay.slice(0, visibleArticles).map((article) => (
                         <Col md={4} key={article.id} className="mb-4">
                             <CardArticle
-                                id={article.id}
+                                id={article.article_id || article.id} // Asegúrate de que el ID sea correcto
                                 title={article.title}
                                 content={article.content}
                                 image={article.image}
@@ -102,7 +102,8 @@ export const UserPrivatePage = () => {
                                 author={article.author}
                                 newspaper={article.newspaper}
                                 category={article.category}
-                                isFavorite={store.favArticles.some(fav => fav.article_id === article.id)}
+                                isFavorite={store.favArticles.some(fav => fav.article_id === (article.article_id || article.id))}
+                                onAddToFavorites={() => actions.addFavorite({ user_id: store.userId, article_id: article.id })} // Función para agregar a favoritos
                             />
                         </Col>
                     ))}
