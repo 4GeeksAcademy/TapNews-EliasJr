@@ -16,7 +16,9 @@ export const UserPrivatePage = () => {
     }, []);
 
     useEffect(() => {
-        if (activeTab === "favoritos") {
+        if (activeTab === "todos") {
+            actions.getFavorites();
+        } else if (activeTab === "favoritos") {
             actions.getFavorites();
         }
     }, [activeTab]);
